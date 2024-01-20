@@ -12,12 +12,12 @@
 #include <glm/glm.hpp>
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window)
+void ProcessInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -29,6 +29,10 @@ struct Result {
     std::string message;
 
     Result() : isSuccess(true) {}
+};
+
+struct VertexData {
+    glm::vec3 position, color;
 };
 
 static void Log(std::stringstream& log, const std::vector<char>& message)
@@ -137,7 +141,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "ETSU Computing Interactive Graphics", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1200, 800, "ETSU Computing Interactive Graphics", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -150,34 +154,40 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glViewport(0, 0, 1200, 800);
+    glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
     //glfwMaximizeWindow(window);
 
     std::string vertexSource =
         "#version 430\n"
         "layout(location = 0) in vec3 position;\n"
+        "layout(location = 1) in vec3 color;\n"
+        "out vec4 fragColor;"
         "void main()\n"
         "{\n"
         "   gl_Position = vec4(position, 1.0);\n"
+        "   fragColor = vec4(color, 1.0);\n"
         "}\n";
 
     std::string fragmentSource =
         "#version 430\n"
-        "layout(location = 4) uniform vec4 uColor;\n"
+        "in vec4 fragColor;\n"
         "out vec4 color;\n"
         "void main()\n"
         "{\n"
-        "   color = uColor;\n"
+        "   color = fragColor;\n"
         "}\n";
 
     unsigned int shaderProgram;
     Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
 
-    glm::vec3 vertexData[3]{};
-    vertexData[0] = { 0, 0.5f, 0 };
-    vertexData[1] = { -0.5, -0.5f, 0 };
-    vertexData[2] = { 0.5, -0.5f, 0 };
+    VertexData vertexData[6]{};
+    vertexData[0] = { {-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} };
+    vertexData[1] = { {-0.5f,-0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} };
+    vertexData[2] = { { 0.5f,-0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} };
+    vertexData[3] = { {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} };
+    vertexData[4] = { { 0.5f,-0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} };
+    vertexData[5] = { { 0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} };
 
     unsigned int vaoId, vboId;
     glGenVertexArrays(1, &vaoId);
@@ -197,12 +207,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     std::string message = result.message;
 
-    int colorLocation = glGetUniformLocation(shaderProgram, "uColor");
-    glm::vec4 color = { 1, 0, 0, 1 };
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
     while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+        ProcessInput(window);
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -212,6 +220,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::NewFrame();
 
         // Render the object
+        if(result.isSuccess)
         {
             glBindVertexArray(vaoId);
             glUseProgram(shaderProgram);
@@ -223,11 +232,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 3,              // Each position has 3 components
                 GL_FLOAT,       // Each component is a 32-bit floating point value
                 GL_FALSE,
-                sizeof(glm::vec3), // The number of bytes to the next position
+                sizeof(VertexData), // The number of bytes to the next position
                 (void*)0        // Byte offset of the first position in the array
             );
-            glUniform4fv(colorLocation, 1, &color.r);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            // Colors
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(
+                1,
+                3,              // Each color has 3 components
+                GL_FLOAT,       // Each component is a 32-bit floating point value
+                GL_FALSE,
+                sizeof(VertexData), // The number of bytes to the next color
+                (void*)sizeof(glm::vec3) // Byte offset of the first color in the array
+            );
+            glDrawArrays(GL_TRIANGLES, 0, 6);
 
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
@@ -241,7 +259,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / io.Framerate, io.Framerate);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-        ImGui::ColorEdit3("Triangle color", (float*)&color.r);
         ImGui::End();
 
         ImGui::Render();
