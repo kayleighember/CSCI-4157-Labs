@@ -200,8 +200,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 referenceFrame(1.0f);
     //referenceFrame = glm::translate(referenceFrame, glm::vec3(-10.0f, 0.0f, 0.0f));
     //referenceFrame = glm::rotate(referenceFrame, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // The 'camera' i.e., the view matrix
     glm::mat4 view(1.0f);
-    //view = glm::translate(view, glm::vec3(-10.0f, 0.0f, 0.0f));
+    // The camera's x points down the -ve world x
+    view[0] = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+    // The camera's z points down the -ve world z
+    view[2] = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f);
+    view = glm::translate(view, glm::vec3(-10.0f, 0.0f, 0.0f));
     float left = -10.0f;
     float right = 10.0f;
     left *= aspectRatio;
