@@ -198,15 +198,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float aspectRatio = width / (height * 1.0f);
 
     glm::mat4 referenceFrame(1.0f);
-    //referenceFrame = glm::translate(referenceFrame, glm::vec3(-10.0f, 0.0f, 0.0f));
-    //referenceFrame = glm::rotate(referenceFrame, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     // The 'camera' i.e., the view matrix
-    glm::mat4 view(1.0f);
+    glm::mat4 viewOriginal(1.0f), view(1.0);
     // The camera's x points down the -ve world x
-    view[0] = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+    viewOriginal[0] = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
     // The camera's z points down the -ve world z
-    view[2] = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f);
-    view = glm::translate(view, glm::vec3(-10.0f, 0.0f, 0.0f));
+    viewOriginal[2] = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f);
+
     float left = -10.0f;
     float right = 10.0f;
     left *= aspectRatio;
@@ -239,7 +237,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
+
+    float angle = 45;
+    float xPos = -10, yPos = 0;
 
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
@@ -251,12 +252,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+        view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
+
         // Render the object
         if (result.isSuccess)
         {
             glUseProgram(shaderProgram);
-            unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
+            
             glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr(referenceFrame));
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
             glBindVertexArray(vaoId);
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
@@ -288,12 +293,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glBindVertexArray(0);
         }
 
-
         ImGui::Begin("Computing Interactive Graphics");
         ImGui::Text(message.c_str());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / io.Framerate, io.Framerate);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
+        ImGui::SliderFloat("Angle", &angle, 0, 359);
+        ImGui::SliderFloat("Camera X", &xPos, -10, 10);
+        ImGui::SliderFloat("Camera Y", &yPos, -10, 10);
         ImGui::End();
 
         ImGui::Render();
