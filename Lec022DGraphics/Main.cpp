@@ -248,10 +248,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
         referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
         view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
 
@@ -293,6 +289,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glBindVertexArray(0);
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
         ImGui::Begin("Computing Interactive Graphics");
         ImGui::Text(message.c_str());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
@@ -302,7 +301,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Camera X", &xPos, -10, 10);
         ImGui::SliderFloat("Camera Y", &yPos, -10, 10);
         ImGui::End();
-
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
