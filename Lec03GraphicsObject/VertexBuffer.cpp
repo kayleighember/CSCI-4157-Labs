@@ -35,7 +35,8 @@ void VertexBuffer::AddVertexData(unsigned int count, ...)
 void VertexBuffer::StaticAllocate()
 {
 	unsigned long long bytesToAllocate = vertexData.size() * sizeof(float);
-	glBufferData(GL_ARRAY_BUFFER, bytesToAllocate, vertexData.data(), GL_STATIC_DRAW);
+	glBufferData(
+		GL_ARRAY_BUFFER, bytesToAllocate, vertexData.data(), GL_STATIC_DRAW);
 }
 
 void VertexBuffer::AddVertexAttribute(
@@ -45,7 +46,10 @@ void VertexBuffer::AddVertexAttribute(
 	unsigned int vertexSizeInBytes = sizeof(float) * numberOfElementsPerVertex;
 	unsigned int bytesToNext = vertexSizeInBytes;
 	unsigned long long offsetBytes = sizeof(float) * offsetCount;
-	VertexAttribute attr = { index, numberOfElements, GL_FLOAT, GL_FALSE, bytesToNext, (void*)offsetBytes };
+	VertexAttribute attr = { 
+		index, numberOfElements, GL_FLOAT, GL_FALSE, 
+		bytesToNext, (void*)offsetBytes 
+	};
 	attributeMap[name] = attr;
 }
 
