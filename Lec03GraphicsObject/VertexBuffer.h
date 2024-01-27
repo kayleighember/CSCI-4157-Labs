@@ -38,6 +38,6 @@ public:
 	void AddVertexAttribute(
 		const std::string& name, unsigned int index, 
 		unsigned int numberOfElements, unsigned int offsetCount=0);
-	void SetAttributeInterpretration();
+	void SetUpAttributeInterpretration();
 };
 

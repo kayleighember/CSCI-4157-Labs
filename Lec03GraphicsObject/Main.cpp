@@ -263,7 +263,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
             glBindVertexArray(vaoId);
             buffer->Select();
-            buffer->SetAttributeInterpretration();
+            buffer->SetUpAttributeInterpretration();
             glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
 
             glDisableVertexAttribArray(0);

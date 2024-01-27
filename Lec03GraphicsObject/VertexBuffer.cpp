@@ -49,7 +49,7 @@ void VertexBuffer::AddVertexAttribute(
 	attributeMap[name] = attr;
 }
 
-void VertexBuffer::SetAttributeInterpretration()
+void VertexBuffer::SetUpAttributeInterpretration()
 {
 	for (const std::pair<const std::string, VertexAttribute>& item : attributeMap) {
 		const auto& attr = item.second;
