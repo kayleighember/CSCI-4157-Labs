@@ -21,7 +21,7 @@ public:
 		return buffer;
 	}
 	void SetPosition(const glm::vec3& position);
-	void ResetReferenceFrame() { referenceFrame = glm::mat4(1.0f); }
+	void ResetOrientation();
 	void RotateLocalZ(float degrees);
 };
 

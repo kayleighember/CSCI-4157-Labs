@@ -24,6 +24,13 @@ void GraphicsObject::SetPosition(const glm::vec3& position)
 	referenceFrame[3] = glm::vec4(position, 1.0f);
 }
 
+void GraphicsObject::ResetOrientation()
+{
+	glm::vec4 position = referenceFrame[3];
+	referenceFrame = glm::mat4(1.0f);
+	referenceFrame[3] = position;
+}
+
 void GraphicsObject::RotateLocalZ(float degrees)
 {
 	referenceFrame = glm::rotate(
