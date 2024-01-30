@@ -20,6 +20,7 @@ public:
 	inline const std::shared_ptr<VertexBuffer>& GetVertexBuffer() const {
 		return buffer;
 	}
+	void StaticAllocateVertexBuffer();
 	void SetPosition(const glm::vec3& position);
 	void ResetOrientation();
 	void RotateLocalZ(float degrees);

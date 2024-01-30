@@ -19,6 +19,13 @@ void GraphicsObject::SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer)
 	this->buffer = buffer;
 }
 
+void GraphicsObject::StaticAllocateVertexBuffer()
+{
+	buffer->Select();
+	buffer->StaticAllocate();
+	buffer->Deselect();
+}
+
 void GraphicsObject::SetPosition(const glm::vec3& position)
 {
 	referenceFrame[3] = glm::vec4(position, 1.0f);

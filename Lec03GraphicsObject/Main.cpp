@@ -239,10 +239,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glBindVertexArray(vaoId);
 	auto& objects = scene->GetObjects();
 	for (auto& object : objects) {
-		auto& buffer = object->GetVertexBuffer();
-		buffer->Select();
-		buffer->StaticAllocate();
-		buffer->Deselect();
+		object->StaticAllocateVertexBuffer();
 	}
 	glBindVertexArray(0);
 
