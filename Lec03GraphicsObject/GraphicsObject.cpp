@@ -19,6 +19,11 @@ void GraphicsObject::SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer)
 	this->buffer = buffer;
 }
 
+void GraphicsObject::SetPosition(const glm::vec3& position)
+{
+	referenceFrame[3] = glm::vec4(position, 1.0f);
+}
+
 void GraphicsObject::RotateLocalZ(float degrees)
 {
 	referenceFrame = glm::rotate(

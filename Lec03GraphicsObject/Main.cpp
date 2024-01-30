@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "VertexBuffer.h"
 #include "GraphicsObject.h"
+#include "Scene.h"
 
 void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -193,19 +194,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     //glm::mat4 referenceFrame(1.0f);
     // The 'camera' i.e., the view matrix
-    glm::mat4 viewOriginal(1.0f), view(1.0);
+    glm::mat4 viewOriginal(1.0f), view(1.0f);
     // The camera's x points down the -ve world x
     viewOriginal[0] = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
     // The camera's z points down the -ve world z
     viewOriginal[2] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
-    float left = -10.0f;
-    float right = 10.0f;
-    float bottom = -10.0f;
-    float top = 10.0f;
+    float left = -50.0f;
+    float right = 50.0f;
+    float bottom = -50.0f;
+    float top = 50.0f;
     left *= aspectRatio;
     right *= aspectRatio;
     glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
+
+    std::shared_ptr<Scene> scene = std::make_shared<Scene>();
  
     std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
     std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
@@ -218,13 +221,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     buffer->AddVertexAttribute("position", 0, 3);
     buffer->AddVertexAttribute("color", 1, 3, 3);
     square->SetVertexBuffer(buffer);
+    scene->AddObject(square);
+
+    std::shared_ptr<GraphicsObject> triangle = std::make_shared<GraphicsObject>();
+    std::shared_ptr<VertexBuffer> buffer2 = std::make_shared<VertexBuffer>(6);
+    buffer2->AddVertexData(6, -5.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    buffer2->AddVertexData(6, -5.0f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    buffer2->AddVertexData(6, 5.0f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    buffer2->AddVertexAttribute("position", 0, 3);
+    buffer2->AddVertexAttribute("color", 1, 3, 3);
+    triangle->SetVertexBuffer(buffer2);
+    triangle->SetPosition(glm::vec3(-30.0f, 0.0f, 0.0f));
+    scene->AddObject(triangle);
 
     unsigned int vaoId;
     glGenVertexArrays(1, &vaoId);
     glBindVertexArray(vaoId);
-    buffer->Select();
-    buffer->StaticAllocate();
-    buffer->Deselect();
+    auto& objects = scene->GetObjects();
+    for (auto& object : objects) {
+        auto& buffer = object->GetVertexBuffer();
+        buffer->Select();
+        buffer->StaticAllocate();
+        buffer->Deselect();
+    }
     glBindVertexArray(0);
 
     IMGUI_CHECKVERSION();
@@ -246,7 +265,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
     unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
 
-    float angle = 45;
+    float angle = 0;
     float xPos = -10, yPos = 0;
 
     while (!glfwWindowShouldClose(window)) {
@@ -254,31 +273,36 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        square->ResetReferenceFrame();
-        square->RotateLocalZ(angle);
-        //referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
         view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
+        //view = glm::translate(glm::mat4(1.0f), glm::vec3(xPos, yPos, 0.0f));
+        //view = viewOriginal;
+        
+        for (auto& object : objects) {
+            
+            //object->ResetReferenceFrame();
+            //object->RotateLocalZ(angle);
+            //referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+            // Render the object
+            if (result.isSuccess)
+            {
+                glUseProgram(shaderProgram);
 
-        // Render the object
-        if (result.isSuccess)
-        {
-            glUseProgram(shaderProgram);
+                glUniformMatrix4fv(
+                    worldLoc, 1, GL_FALSE,
+                    glm::value_ptr(object->GetReferenceFrame()));
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-            glUniformMatrix4fv(
-                worldLoc, 1, GL_FALSE, 
-                glm::value_ptr(square->GetReferenceFrame()));
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+                glBindVertexArray(vaoId);
+                auto& buffer = object->GetVertexBuffer();
+                buffer->Select();
+                buffer->SetUpAttributeInterpretration();
+                glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
 
-            glBindVertexArray(vaoId);
-            buffer->Select();
-            buffer->SetUpAttributeInterpretration();
-            glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
-
-            glDisableVertexAttribArray(0);
-            glDisableVertexAttribArray(1);
-            glUseProgram(0);
-            glBindVertexArray(0);
+                glDisableVertexAttribArray(0);
+                glDisableVertexAttribArray(1);
+                glUseProgram(0);
+                glBindVertexArray(0);
+            }
         }
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -290,8 +314,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             1000.0f / io.Framerate, io.Framerate);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
         ImGui::SliderFloat("Angle", &angle, 0, 359);
-        ImGui::SliderFloat("Camera X", &xPos, -10, 10);
-        ImGui::SliderFloat("Camera Y", &yPos, -10, 10);
+        ImGui::SliderFloat("Camera X", &xPos, left, right);
+        ImGui::SliderFloat("Camera Y", &yPos, bottom, top);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
