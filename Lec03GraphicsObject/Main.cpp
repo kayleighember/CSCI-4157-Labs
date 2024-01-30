@@ -13,6 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "VertexBuffer.h"
+#include "GraphicsObject.h"
 
 void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -190,7 +191,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwGetWindowSize(window, &width, &height);
     float aspectRatio = width / (height * 1.0f);
 
-    glm::mat4 referenceFrame(1.0f);
+    //glm::mat4 referenceFrame(1.0f);
     // The 'camera' i.e., the view matrix
     glm::mat4 viewOriginal(1.0f), view(1.0);
     // The camera's x points down the -ve world x
@@ -206,6 +207,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     right *= aspectRatio;
     glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
+    std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
     std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
     buffer->AddVertexData(6, -5.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     buffer->AddVertexData(6, -5.0f, -5.0f, 0.0f, 1.0f, 0.0f, 0.0f);
@@ -215,6 +217,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     buffer->AddVertexData(6, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 1.0f);
     buffer->AddVertexAttribute("position", 0, 3);
     buffer->AddVertexAttribute("color", 1, 3, 3);
+    square->SetVertexBuffer(buffer);
 
     unsigned int vaoId;
     glGenVertexArrays(1, &vaoId);
@@ -252,7 +255,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+        square->ResetReferenceFrame();
+        square->RotateLocalZ(angle);
+        //referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
         view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
 
         // Render the object
@@ -260,7 +265,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             glUseProgram(shaderProgram);
 
-            glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr(referenceFrame));
+            glUniformMatrix4fv(
+                worldLoc, 1, GL_FALSE, 
+                glm::value_ptr(square->GetReferenceFrame()));
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
             glBindVertexArray(vaoId);
