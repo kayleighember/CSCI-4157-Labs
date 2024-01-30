@@ -1,12 +1,20 @@
 #include "GraphicsObject.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-GraphicsObject::GraphicsObject() : referenceFrame(1.0f)
+GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr)
 {
 }
 
 GraphicsObject::~GraphicsObject()
 {
+}
+
+const glm::mat4 GraphicsObject::GetReferenceFrame() const
+{
+	if (parent != nullptr) {
+		return parent->referenceFrame * referenceFrame;
+	}
+	return referenceFrame;
 }
 
 void GraphicsObject::CreateVertexBuffer(unsigned int numberOfElementsPerVertex)
@@ -24,6 +32,15 @@ void GraphicsObject::StaticAllocateVertexBuffer()
 	buffer->Select();
 	buffer->StaticAllocate();
 	buffer->Deselect();
+	for (auto& child : children) {
+		child->StaticAllocateVertexBuffer();
+	}
+}
+
+void GraphicsObject::AddChild(std::shared_ptr<GraphicsObject> child)
+{
+	children.push_back(child);
+	child->parent = this;
 }
 
 void GraphicsObject::SetPosition(const glm::vec3& position)
