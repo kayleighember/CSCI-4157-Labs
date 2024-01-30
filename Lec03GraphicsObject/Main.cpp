@@ -200,9 +200,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     float left = -10.0f;
     float right = 10.0f;
+    float bottom = -10.0f;
+    float top = 10.0f;
     left *= aspectRatio;
     right *= aspectRatio;
-    glm::mat4 projection = glm::ortho(left, right, -10.0f, 10.0f, -1.0f, 1.0f);
+    glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
     std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
     buffer->AddVertexData(6, -5.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f);
