@@ -206,7 +206,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     left *= aspectRatio;
     right *= aspectRatio;
     glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
-
+ 
     std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
     std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
     buffer->AddVertexData(6, -5.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f);
