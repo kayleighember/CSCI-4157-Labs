@@ -153,6 +153,22 @@ static void RenderObject(const GraphicsObject& object, unsigned int matrixLoc)
 	}
 }
 
+static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
+{
+	glm::vec3 right = glm::cross(direction, up);
+	right = glm::normalize(right);
+
+	glm::vec3 vUp = glm::cross(right, direction);
+	vUp = glm::normalize(vUp);
+
+	glm::mat4 view(1.0f);
+	view[0] = glm::vec4(right, 0.0f);
+	view[1] = glm::vec4(up, 0.0f);
+	view[2] = glm::vec4(direction, 0.0f);
+	view[3] = glm::vec4(position, 1.0f);
+	return glm::inverse(view);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -209,21 +225,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 	float aspectRatio = width / (height * 1.0f);
-
-	// The 'camera' i.e., the view matrix
-	glm::mat4 viewOriginal(1.0f), view(1.0f);
-	glm::vec4 cameraPos = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	//glm::vec3 cameraTarget = cameraPos + glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec4 cameraUp = glm::vec4(0.0f, 1.0f, 0.0f, 0);
-	glm::vec4 cameraRight = glm::vec4(1.0f, 0.0f, 0.0f, 0);
-	glm::vec4 cameraLook = glm::vec4(0.0f, 0.0f, -1.0f, 0);
-	//viewOriginal = glm::lookAt(cameraPos, cameraTarget, cameraUp);
-	viewOriginal[0] = cameraRight;
-	viewOriginal[1] = cameraUp;
-	viewOriginal[2] = cameraLook;
-	viewOriginal[3] = cameraPos;
-	viewOriginal = glm::inverse(viewOriginal);
-
 
 	float left = -50.0f;
 	float right = 50.0f;
@@ -299,14 +300,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
 
 	float angle = 0, childAngle = 0;
-	float xPos = -10, yPos = 0;
+	float cameraX = -10, cameraY = 0;
+	glm::mat4 view;
 
 	while (!glfwWindowShouldClose(window)) {
 		ProcessInput(window);
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
+
+		view = CreateViewMatrix(
+			glm::vec3(cameraX, cameraY, 1.0f),
+			glm::vec3(0.0f, 0.0f, -1.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
 
 		// Update the objects in the scene
 		for (auto& object : objects) {
@@ -343,8 +350,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
 		ImGui::SliderFloat("Angle", &angle, 0, 360);
 		ImGui::SliderFloat("Child Angle", &childAngle, 0, 360);
-		ImGui::SliderFloat("Camera X", &xPos, left, right);
-		ImGui::SliderFloat("Camera Y", &yPos, bottom, top);
+		ImGui::SliderFloat("Camera X", &cameraX, left, right);
+		ImGui::SliderFloat("Camera Y", &cameraY, bottom, top);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
