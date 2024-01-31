@@ -212,10 +212,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// The 'camera' i.e., the view matrix
 	glm::mat4 viewOriginal(1.0f), view(1.0f);
-	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 cameraTarget = cameraPos + glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	viewOriginal = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+	glm::vec4 cameraPos = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+	//glm::vec3 cameraTarget = cameraPos + glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec4 cameraUp = glm::vec4(0.0f, 1.0f, 0.0f, 0);
+	glm::vec4 cameraRight = glm::vec4(1.0f, 0.0f, 0.0f, 0);
+	glm::vec4 cameraLook = glm::vec4(0.0f, 0.0f, -1.0f, 0);
+	//viewOriginal = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+	viewOriginal[0] = cameraRight;
+	viewOriginal[1] = cameraUp;
+	viewOriginal[2] = cameraLook;
+	viewOriginal[3] = cameraPos;
+	viewOriginal = glm::inverse(viewOriginal);
 
 
 	float left = -50.0f;
@@ -299,7 +306,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		view = glm::translate(viewOriginal, glm::vec3(-xPos, -yPos, 0.0f));
+		view = glm::translate(viewOriginal, glm::vec3(xPos, yPos, 0.0f));
 
 		// Update the objects in the scene
 		for (auto& object : objects) {
