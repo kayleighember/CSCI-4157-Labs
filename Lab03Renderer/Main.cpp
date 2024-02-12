@@ -16,6 +16,8 @@
 #include "GraphicsObject.h"
 #include "Scene.h"
 #include "Shader.h"
+#include "Renderer.h"
+#include "TextFile.h"
 
 void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -29,11 +31,10 @@ void ProcessInput(GLFWwindow* window)
 	}
 }
 
+/*
 static void RenderObject(const GraphicsObject& object, Shader& shader)
 {
-	//glUniformMatrix4fv(
-	//	matrixLoc, 1, GL_FALSE,
-	//	glm::value_ptr(object.GetReferenceFrame()));
+	shader.SendMat4Uniform("world", object.GetReferenceFrame());
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
@@ -46,6 +47,7 @@ static void RenderObject(const GraphicsObject& object, Shader& shader)
 		RenderObject(*child, shader);
 	}
 }
+*/
 
 static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
 {
@@ -90,6 +92,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
 	//glfwMaximizeWindow(window);
 
+	/*
 	std::string vertexSource =
 		"#version 430\n"
 		"layout(location = 0) in vec3 position;\n"
@@ -112,6 +115,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		"{\n"
 		"   color = fragColor;\n"
 		"}\n";
+	*/
+	TextFile file;
+	file.TextToStringStream("basic.vert.glsl");
+	std::string vertexSource = file.data;
+	file.TextToStringStream("basic.frag.glsl");
+	std::string fragmentSource = file.data;
 
 	std::shared_ptr<Shader> shader = std::make_shared<Shader>();
 	shader->AddUniform("projection");
@@ -167,6 +176,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	line->SetPosition(glm::vec3(5.0f, -10.0f, 0.0f));
 	triangle->AddChild(line);
 
+	/*
 	unsigned int vaoId;
 	glGenVertexArrays(1, &vaoId);
 	glBindVertexArray(vaoId);
@@ -175,6 +185,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		object->StaticAllocateVertexBuffer();
 	}
 	glBindVertexArray(0);
+	*/
+
+	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(shader);
+	auto& objects = scene->GetObjects();
+	renderer->staticAllocVertexBuffers(objects);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -215,20 +230,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
+		/*
 		// Render the scene
 		if (shader->IsCreated()) {
 			glUseProgram(shaderProgram);
 			glBindVertexArray(vaoId);
 			shader->SendMat4Uniform("view", view);
 			// Render the objects in the scene
-			for (auto& object : objects) {
-				RenderObject(*object, *shader);
-			}
+			//for (auto& object : objects) {
+			//	RenderObject(*object, *shader);
+			//}
+			
 			glDisableVertexAttribArray(0);
 			glDisableVertexAttribArray(1);
 			glUseProgram(0);
 			glBindVertexArray(0);
 		}
+		*/
+		renderer->RenderScene(scene, view);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
