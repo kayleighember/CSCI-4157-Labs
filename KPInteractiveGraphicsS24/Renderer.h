@@ -16,7 +16,7 @@ public:
 	~Renderer() = default;
 
 	inline const std::shared_ptr<Shader> GetShader() const { return _shader; }
-	void staticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
+	void StaticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
 	void RenderScene(std::shared_ptr<Scene>& scene, glm::mat4& view);
 private:	
 	void RenderObject(const GraphicsObject& object);

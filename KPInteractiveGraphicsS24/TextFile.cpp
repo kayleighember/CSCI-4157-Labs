@@ -29,7 +29,8 @@ void TextFile::TextToStringStream(std::string filePath) {
             ss << line << std::endl;
         }
     }
-    Log("Successfully read files!");
+    std::string success = "Successfully read " + filePath + "!";
+    Log(success);
     data = ss.str();
     fin.close();
 }

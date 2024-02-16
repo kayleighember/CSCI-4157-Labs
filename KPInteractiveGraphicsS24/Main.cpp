@@ -46,6 +46,49 @@ static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& di
 	return glm::inverse(view);
 }
 
+static void SetUpTexturedScene(
+	std::shared_ptr<Shader>& textureShader, std::shared_ptr<Scene>& textureScene) {
+	TextFile file;
+	file.TextToStringStream("texture.vert.glsl");
+	std::string vertexSource = file.data;
+	file.TextToStringStream("texture.frag.glsl");
+	std::string fragmentSource = file.data;
+
+	textureShader = std::make_shared<Shader>(vertexSource, fragmentSource);
+	textureShader->AddUniform("projection");
+	textureShader->AddUniform("world");
+	textureShader->AddUniform("view");
+	textureShader->AddUniform("texUnit");
+	unsigned int shaderProgram = textureShader->GetShaderProgram();
+
+	std::shared_ptr<Texture> texture = std::make_shared<Texture>();
+	texture->SetWidthHeight(4,4);
+	unsigned char* textureData = new unsigned char[] {
+		255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		255, 255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255
+	};
+	texture->SetTextureData(64, textureData);
+	
+	textureScene = std::make_shared<Scene>();
+	std::shared_ptr<GraphicsObject> graphicsObj = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(8);
+	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer->AddVertexData(8, -20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer->AddVertexData(8, 20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+	buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer->SetTexture(texture);
+	graphicsObj->SetVertexBuffer(buffer);
+	graphicsObj->SetPosition(glm::vec3(0, 0, 0));
+	textureScene->AddObject(graphicsObj);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -73,7 +116,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
 	//glfwMaximizeWindow(window);
 
-	TextFile file;
+	/*TextFile file;
 	file.TextToStringStream("basic.vert.glsl");
 	std::string vertexSource = file.data;
 	file.TextToStringStream("basic.frag.glsl");
@@ -83,7 +126,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	shader->AddUniform("projection");
 	shader->AddUniform("world");
 	shader->AddUniform("view");
-	unsigned int shaderProgram = shader->GetShaderProgram();
+	unsigned int shaderProgram = shader->GetShaderProgram();*/
 
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
@@ -96,7 +139,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	right *= aspectRatio;
 	glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
-	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
+	/*std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
@@ -135,7 +178,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(shader);
 	auto& objects = scene->GetObjects();
-	renderer->staticAllocVertexBuffers(objects);
+	renderer->StaticAllocVertexBuffers(objects);*/
+
+	std::shared_ptr<Shader> textureShader;
+	std::shared_ptr<Scene> textureScene;
+	// Call the function to set up the textured scene by passing the declared shader and scene
+	SetUpTexturedScene(textureShader, textureScene);
+	// Create textureRenderer using the new shader
+	std::shared_ptr<Renderer> textureRenderer = std::make_shared<Renderer>(textureShader);
+	auto& objects = textureScene->GetObjects();
+	textureRenderer->StaticAllocVertexBuffers(objects);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -146,9 +198,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
-	glUseProgram(shaderProgram);
-
-	shader->SendMat4Uniform("projection", projection);
+	glUseProgram(textureShader->GetShaderProgram());
+	//shader->SendMat4Uniform("projection", projection);
+	textureShader->SendMat4Uniform("projection", projection);
 
 	float angle = 0, childAngle = 0;
 	float cameraX = -10, cameraY = 0;
@@ -176,13 +228,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		renderer->RenderScene(scene, view);
+		//renderer->RenderScene(scene, view);
+		textureRenderer->RenderScene(textureScene, view);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("Computing Interactive Graphics");
-		ImGui::Text(shader->GetLog().c_str());
+		//ImGui::Text(shader->GetLog().c_str());
+		ImGui::Text(textureShader->GetLog().c_str());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);

@@ -56,7 +56,7 @@ unsigned int Shader::CompileShaderSource(int type, const std::string& shaderSour
 		Log(infoLog);
 		return -1;
 	}
-	const char* successMsg = "Success";
+	const char* successMsg = "Successfully compiled shader!";
 	Log(successMsg);
 	return shaderId;
 }
@@ -137,4 +137,9 @@ void Shader::AddUniform(const std::string& uniformName) {
 void Shader::SendMat4Uniform(const std::string& uniformName, const glm::mat4& mat) {
 	glUseProgram(shaderProgram);
 	glUniformMatrix4fv(uniformMap[uniformName], 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void Shader::SendIntUniform(const std::string& uniformName, int value) {
+	glUseProgram(shaderProgram);
+	glUniform1i(uniformMap[uniformName], value);
 }

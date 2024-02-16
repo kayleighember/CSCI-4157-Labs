@@ -73,6 +73,8 @@
   <ItemGroup>
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
+    <None Include="texture.vert.glsl" />
+    <None Include="texture.frag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseObject.h">

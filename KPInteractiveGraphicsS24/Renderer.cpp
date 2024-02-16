@@ -14,7 +14,7 @@ Renderer::Renderer() {
 	// idk do I need a default constructor??
 }
 
-void Renderer::staticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
+void Renderer::StaticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
 	glBindVertexArray(vaoId);
 	//auto& objects = scene->GetObjects();
 	for (auto& object : objects) {
@@ -29,6 +29,12 @@ void Renderer::RenderObject(const GraphicsObject& object)
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
+	if (buffer->HasTexture()) {
+		//glUniform1i(texUnit, buffer->GetTextureUnit());
+		_shader->SendIntUniform("texUnit", buffer->GetTextureUnit());
+		// get texture from the buffer and select it for render
+		buffer->SelectTexture();
+	}
 	buffer->SetUpAttributeInterpretration();
 	glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
 
