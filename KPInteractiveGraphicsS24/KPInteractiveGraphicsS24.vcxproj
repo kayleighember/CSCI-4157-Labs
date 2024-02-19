@@ -158,6 +158,7 @@
     <None Include="texture.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\3rdparty\stb_image.h" />
     <ClInclude Include="BaseObject.h" />
     <ClInclude Include="GraphicsObject.h" />
     <ClInclude Include="Renderer.h" />
@@ -166,6 +167,9 @@
     <ClInclude Include="TextFile.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VertexBuffer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="pattern_0011.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

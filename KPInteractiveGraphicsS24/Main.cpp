@@ -74,19 +74,43 @@ static void SetUpTexturedScene(
 	textureScene = std::make_shared<Scene>();
 	std::shared_ptr<GraphicsObject> graphicsObj = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(8);
-	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 3.0f);
 	buffer->AddVertexData(8, -20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
-	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
-	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
-	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
-	buffer->AddVertexData(8, 20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 0.0f);
+	buffer->AddVertexData(8, -20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 3.0f);
+	buffer->AddVertexData(8, 20.0f, -20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 0.0f);
+	buffer->AddVertexData(8, 20.0f, 20.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 3.0f);
 	buffer->AddVertexAttribute("position", 0, 3, 0);
 	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
 	buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	texture->SetWrapS(GL_CLAMP_TO_EDGE);
+	texture->SetWrapT(GL_CLAMP_TO_EDGE);
+	texture->SetMagFilter(GL_LINEAR);
 	buffer->SetTexture(texture);
 	graphicsObj->SetVertexBuffer(buffer);
-	graphicsObj->SetPosition(glm::vec3(0, 0, 0));
+	graphicsObj->SetPosition(glm::vec3(-30, -10, 0));
 	textureScene->AddObject(graphicsObj);
+
+	// add a new textured object to your scene
+	std::shared_ptr<GraphicsObject> graphicsObj2 = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> buffer2 = std::make_shared<VertexBuffer>(8);
+	buffer2->AddVertexData(8, -10.0f, 10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer2->AddVertexData(8, -10.0f, -10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+	buffer2->AddVertexData(8, 10.0f, -10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer2->AddVertexData(8, -10.0f, 10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer2->AddVertexData(8, 10.0f, -10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer2->AddVertexData(8, 10.0f, 10.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	buffer2->AddVertexAttribute("position", 0, 3, 0);
+	buffer2->AddVertexAttribute("vertexColor", 1, 3, 3);
+	buffer2->AddVertexAttribute("texCoord", 2, 2, 6);
+
+	std::shared_ptr<Texture> texture2 = std::make_shared<Texture>();
+	texture2->LoadTextureDataFromFile("pattern_0011.png");
+
+	buffer2->SetTexture(texture2);
+	graphicsObj2->SetVertexBuffer(buffer2);
+	graphicsObj2->SetPosition(glm::vec3(26, 28, 0));
+	textureScene->AddObject(graphicsObj2);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -111,22 +135,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glViewport(0, 0, 1200, 800);
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
 	//glfwMaximizeWindow(window);
-
-	/*TextFile file;
-	file.TextToStringStream("basic.vert.glsl");
-	std::string vertexSource = file.data;
-	file.TextToStringStream("basic.frag.glsl");
-	std::string fragmentSource = file.data;
-
-	std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-	shader->AddUniform("projection");
-	shader->AddUniform("world");
-	shader->AddUniform("view");
-	unsigned int shaderProgram = shader->GetShaderProgram();*/
 
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
@@ -139,7 +153,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	right *= aspectRatio;
 	glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
-	/*std::shared_ptr<Scene> scene = std::make_shared<Scene>();
+#pragma region basicShape
+	TextFile file;
+	file.TextToStringStream("basic.vert.glsl");
+	std::string vertexSource = file.data;
+	file.TextToStringStream("basic.frag.glsl");
+	std::string fragmentSource = file.data;
+
+	std::shared_ptr<Shader> basicShader = std::make_shared<Shader>();
+	basicShader->AddUniform("projection");
+	basicShader->AddUniform("world");
+	basicShader->AddUniform("view");
+	unsigned int shaderProgram = basicShader->GetShaderProgram();
+
+	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
@@ -176,9 +203,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	line->SetPosition(glm::vec3(5.0f, -10.0f, 0.0f));
 	triangle->AddChild(line);
 
-	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(shader);
+	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(basicShader);
 	auto& objects = scene->GetObjects();
-	renderer->StaticAllocVertexBuffers(objects);*/
+	renderer->StaticAllocVertexBuffers(objects);
+#pragma endregion
 
 	std::shared_ptr<Shader> textureShader;
 	std::shared_ptr<Scene> textureScene;
@@ -186,8 +214,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	SetUpTexturedScene(textureShader, textureScene);
 	// Create textureRenderer using the new shader
 	std::shared_ptr<Renderer> textureRenderer = std::make_shared<Renderer>(textureShader);
-	auto& objects = textureScene->GetObjects();
-	textureRenderer->StaticAllocVertexBuffers(objects);
+	auto& textureObjects = textureScene->GetObjects();
+	textureRenderer->StaticAllocVertexBuffers(textureObjects);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -198,8 +226,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
+	
+	basicShader->SendMat4Uniform("projection", projection);
 	glUseProgram(textureShader->GetShaderProgram());
-	//shader->SendMat4Uniform("projection", projection);
 	textureShader->SendMat4Uniform("projection", projection);
 
 	float angle = 0, childAngle = 0;
@@ -228,7 +257,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		//renderer->RenderScene(scene, view);
+		renderer->RenderScene(scene, view);
 		textureRenderer->RenderScene(textureScene, view);
 
 		ImGui_ImplOpenGL3_NewFrame();

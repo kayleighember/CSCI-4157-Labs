@@ -101,5 +101,13 @@
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\3rdparty\stb_image.h">
+      <Filter>Source Files\3rdparty</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="pattern_0011.png">
+      <Filter>Source Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

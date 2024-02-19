@@ -1,4 +1,6 @@
 #include "Texture.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 Texture::Texture() {
 	textureData = nullptr;
@@ -13,6 +15,7 @@ Texture::Texture() {
 	wrapT = GL_REPEAT;
 	magFilter = GL_NEAREST;
 	minFilter = GL_NEAREST;
+	numberOfChannels = 4;
 }
 
 Texture::~Texture() {
@@ -42,6 +45,19 @@ bool Texture::IsLoadedFromFile() {
 void Texture::SetWidthHeight(unsigned int width, unsigned int height) {
 	this->width = width;
 	this->height = height;
+}
+
+void Texture::LoadTextureDataFromFile(const std::string& filepath) {
+	Cleanup();
+	int width, height;
+	stbi_set_flip_vertically_on_load(true);
+	textureData = stbi_load(filepath.c_str(), &width, &height, &numberOfChannels, 0);
+	this->width = width;
+	this->height = height;
+	if (numberOfChannels == 3) {
+		sourceFormat = GL_RGB;
+	}
+	isLoadedFromFile = true;
 }
 
 void Texture::SelectToChange() {
@@ -77,6 +93,9 @@ void Texture::Cleanup() {
 	}
 	if (!isLoadedFromFile) {
 		delete[] textureData;
+	}
+	else {
+		stbi_image_free(textureData);
 	}
 	textureData = nullptr;
 }
