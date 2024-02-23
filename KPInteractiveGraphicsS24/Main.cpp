@@ -17,11 +17,7 @@
 #include "Shader.h"
 #include "Renderer.h"
 #include "TextFile.h"
-
-void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
+#include "GraphicsEnvironment.h"
 
 void ProcessInput(GLFWwindow* window)
 {
@@ -118,28 +114,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow)
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow* window = glfwCreateWindow(1200, 800, "ETSU Computing Interactive Graphics", NULL, NULL);
-	if (window == NULL) {
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glViewport(0, 0, 1200, 800);
-	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
+	std::shared_ptr<GraphicsEnvironment> environment = std::make_shared<GraphicsEnvironment>();
+	environment->Init(4,3);
+	if (!environment->SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
+	if (!environment->InitGlad()) { return -1; }
+	environment->SetUpGraphics();
+	GLFWwindow* window = environment->GetWindow();
+	
+	glViewport(0, 0, 1200, 800);	
 	//glfwMaximizeWindow(window);
 
 	int width, height;
@@ -204,28 +186,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	triangle->AddChild(line);
 
 	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(basicShader);
+	renderer->SetScene(scene);
 	auto& objects = scene->GetObjects();
 	renderer->StaticAllocVertexBuffers(objects);
 #pragma endregion
 
+#pragma region texturedShape
 	std::shared_ptr<Shader> textureShader;
 	std::shared_ptr<Scene> textureScene;
 	// Call the function to set up the textured scene by passing the declared shader and scene
 	SetUpTexturedScene(textureShader, textureScene);
 	// Create textureRenderer using the new shader
 	std::shared_ptr<Renderer> textureRenderer = std::make_shared<Renderer>(textureShader);
+	textureRenderer->SetScene(textureScene);
 	auto& textureObjects = textureScene->GetObjects();
 	textureRenderer->StaticAllocVertexBuffers(textureObjects);
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 430");
+#pragma endregion
 
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
-
 	
 	basicShader->SendMat4Uniform("projection", projection);
 	glUseProgram(textureShader->GetShaderProgram());
@@ -234,6 +212,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	float angle = 0, childAngle = 0;
 	float cameraX = -10, cameraY = 0;
 	glm::mat4 view;
+
+	ImGuiIO& io = ImGui::GetIO();
 
 	while (!glfwWindowShouldClose(window)) {
 		ProcessInput(window);
@@ -257,8 +237,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		renderer->RenderScene(scene, view);
-		textureRenderer->RenderScene(textureScene, view);
+		renderer->SetView(view);
+		renderer->RenderScene();
+		textureRenderer->SetView(view);
+		textureRenderer->RenderScene();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();

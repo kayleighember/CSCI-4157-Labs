@@ -10,10 +10,6 @@ Renderer::Renderer(std::shared_ptr<Shader> shader) {
 	glGenVertexArrays(1, &vaoId);
 }
 
-Renderer::Renderer() {
-	// idk do I need a default constructor??
-}
-
 void Renderer::StaticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
 	glBindVertexArray(vaoId);
 	//auto& objects = scene->GetObjects();
@@ -45,11 +41,12 @@ void Renderer::RenderObject(const GraphicsObject& object)
 	}
 }
 
-void Renderer::RenderScene(std::shared_ptr<Scene>& scene, glm::mat4& view) {
+void Renderer::RenderScene() {
 	glUseProgram(_shader->GetShaderProgram());
 	glBindVertexArray(vaoId);
 	_shader->SendMat4Uniform("view", view);
 	// Render the objects in the scene
+	//std::shared_ptr<Scene> scene = GetScene();
 	for (auto& object : scene->GetObjects()) {
 		RenderObject(*object);
 	}
