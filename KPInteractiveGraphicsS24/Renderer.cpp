@@ -43,22 +43,6 @@ void Renderer::RenderObject(const GraphicsObject& object)
 	}
 }
 
-glm::mat4 Renderer::CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
-{
-	glm::vec3 right = glm::cross(direction, up);
-	right = glm::normalize(right);
-
-	glm::vec3 vUp = glm::cross(right, direction);
-	vUp = glm::normalize(vUp);
-
-	glm::mat4 view(1.0f);
-	view[0] = glm::vec4(right, 0.0f);
-	view[1] = glm::vec4(up, 0.0f);
-	view[2] = glm::vec4(direction, 0.0f);
-	view[3] = glm::vec4(position, 1.0f);
-	return glm::inverse(view);
-}
-
 void Renderer::RenderScene() {
 	glUseProgram(shader->GetShaderProgram());
 	glBindVertexArray(vaoId);

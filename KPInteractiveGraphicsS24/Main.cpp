@@ -19,13 +19,6 @@
 #include "TextFile.h"
 #include "GraphicsEnvironment.h"
 
-void ProcessInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-}
-
 static void SetUpTexturedScene(
 	std::shared_ptr<Shader>& textureShader, std::shared_ptr<Scene>& textureScene) {
 	TextFile file;
@@ -68,7 +61,7 @@ static void SetUpTexturedScene(
 	texture->SetMagFilter(GL_LINEAR);
 	buffer->SetTexture(texture);
 	graphicsObj->SetVertexBuffer(buffer);
-	graphicsObj->SetPosition(glm::vec3(-30, -10, 0));
+	graphicsObj->SetPosition(glm::vec3(-30, -15, 0));
 	textureScene->AddObject(graphicsObj);
 
 	// add a new textured object to your scene
@@ -143,22 +136,6 @@ void SetUpBasicScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& sc
 	triangle->AddChild(line);
 }
 
-//static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
-//{
-//	glm::vec3 right = glm::cross(direction, up);
-//	right = glm::normalize(right);
-//
-//	glm::vec3 vUp = glm::cross(right, direction);
-//	vUp = glm::normalize(vUp);
-//
-//	glm::mat4 view(1.0f);
-//	view[0] = glm::vec4(right, 0.0f);
-//	view[1] = glm::vec4(up, 0.0f);
-//	view[2] = glm::vec4(direction, 0.0f);
-//	view[3] = glm::vec4(position, 1.0f);
-//	return glm::inverse(view);
-//}
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -169,112 +146,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (!environment->SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
 	if (!environment->InitGlad()) { return -1; }
 	environment->SetUpGraphics();
-	GLFWwindow* window = environment->GetWindow();
-	
-	glViewport(0, 0, 1200, 800);	
-	//glfwMaximizeWindow(window);
 
-	int width, height;
-	glfwGetWindowSize(window, &width, &height);
-	float aspectRatio = width / (height * 1.0f);
-	float left = -50.0f;
-	float right = 50.0f;
-	float bottom = -50.0f;
-	float top = 50.0f;
-	left *= aspectRatio;
-	right *= aspectRatio;
-	glm::mat4 projection;
-
-#pragma region basicShape
 	std::shared_ptr<Shader> basicShader;
 	std::shared_ptr<Scene> basicScene;
 	SetUpBasicScene(basicShader, basicScene);
-	environment->CreateRenderer("renderer", basicShader);
-	environment->GetRenderer("renderer")->SetScene(basicScene);
-	auto& objects = basicScene->GetObjects();
-#pragma endregion
-
-#pragma region texturedShape
 	std::shared_ptr<Shader> textureShader;
 	std::shared_ptr<Scene> textureScene;
-	// Call the function to set up the textured scene by passing the declared shader and scene
 	SetUpTexturedScene(textureShader, textureScene);
-	// Create textureRenderer using the new shader
+
+	environment->CreateRenderer("renderer", basicShader);
+	environment->GetRenderer("renderer")->SetScene(basicScene);
+	//auto& objects = basicScene->GetObjects();
 	environment->CreateRenderer("textureRenderer", textureShader);
 	environment->GetRenderer("textureRenderer")->SetScene(textureScene);
-	auto& textureObjects = textureScene->GetObjects();
-#pragma endregion
+	//auto& textureObjects = textureScene->GetObjects();
+	environment->StaticAllocate();
 
-	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
-
-	//basicShader->SendMat4Uniform("projection", projection);
-	//glUseProgram(textureShader->GetShaderProgram());
-	//textureShader->SendMat4Uniform("projection", projection);
-
-	float angle = 0, childAngle = 0;
-	float cameraX = -10, cameraY = 0;
-	glm::mat4 view;
-
-	ImGuiIO& io = ImGui::GetIO();
-
-	while (!glfwWindowShouldClose(window)) {
-		ProcessInput(window);
-		glfwGetWindowSize(window, &width, &height);
-
-		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);	
-
-		projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
-
-		// Update the objects in the scene
-		for (auto& object : objects) {
-			object->ResetOrientation();
-			object->RotateLocalZ(angle);
-			for (auto& child : object->GetChildren()) {
-				child->ResetOrientation();
-				child->RotateLocalZ(childAngle);
-			}
-		}
-
-		view = environment->GetRenderer("renderer")->CreateViewMatrix(
-			glm::vec3(cameraX, cameraY, 1.0f),
-			glm::vec3(0.0f, 0.0f, -1.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f)
-		);
-
-		environment->StaticAllocate();
-		environment->GetRenderer("renderer")->SetProjection(projection);
-		environment->GetRenderer("textureRenderer")->SetProjection(projection);
-		environment->GetRenderer("renderer")->SetView(view);
-		environment->GetRenderer("textureRenderer")->SetView(view);
-		environment->Render();
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Begin("Computing Interactive Graphics");
-		//ImGui::Text(shader->GetLog().c_str());
-		ImGui::Text(textureShader->GetLog().c_str());
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-			1000.0f / io.Framerate, io.Framerate);
-		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::SliderFloat("Angle", &angle, 0, 360);
-		ImGui::SliderFloat("Child Angle", &childAngle, 0, 360);
-		ImGui::SliderFloat("Camera X", &cameraX, left, right);
-		ImGui::SliderFloat("Camera Y", &cameraY, bottom, top);
-		ImGui::End();
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	glfwTerminate();
+	environment->Run2D();
 	return 0;
 }
 

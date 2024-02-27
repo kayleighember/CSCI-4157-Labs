@@ -21,7 +21,6 @@ public:
 	inline void SetScene(std::shared_ptr<Scene>& scene) { this->scene = scene; }
 	inline void SetView(glm::mat4& view) { this->view = view; }
 	inline void SetProjection(glm::mat4& projection) { this->projection = projection; }
-	static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up);
 	void StaticAllocVertexBuffers();
 	void RenderScene();
 private:	
