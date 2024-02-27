@@ -26,22 +26,6 @@ void ProcessInput(GLFWwindow* window)
 	}
 }
 
-static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
-{
-	glm::vec3 right = glm::cross(direction, up);
-	right = glm::normalize(right);
-
-	glm::vec3 vUp = glm::cross(right, direction);
-	vUp = glm::normalize(vUp);
-
-	glm::mat4 view(1.0f);
-	view[0] = glm::vec4(right, 0.0f);
-	view[1] = glm::vec4(up, 0.0f);
-	view[2] = glm::vec4(direction, 0.0f);
-	view[3] = glm::vec4(position, 1.0f);
-	return glm::inverse(view);
-}
-
 static void SetUpTexturedScene(
 	std::shared_ptr<Shader>& textureShader, std::shared_ptr<Scene>& textureScene) {
 	TextFile file;
@@ -109,47 +93,20 @@ static void SetUpTexturedScene(
 	textureScene->AddObject(graphicsObj2);
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPWSTR    lpCmdLine,
-	_In_ int       nCmdShow)
-{
-	std::shared_ptr<GraphicsEnvironment> environment = std::make_shared<GraphicsEnvironment>();
-	environment->Init(4,3);
-	if (!environment->SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
-	if (!environment->InitGlad()) { return -1; }
-	environment->SetUpGraphics();
-	GLFWwindow* window = environment->GetWindow();
-	
-	glViewport(0, 0, 1200, 800);	
-	//glfwMaximizeWindow(window);
-
-	int width, height;
-	glfwGetWindowSize(window, &width, &height);
-	float aspectRatio = width / (height * 1.0f);
-	float left = -50.0f;
-	float right = 50.0f;
-	float bottom = -50.0f;
-	float top = 50.0f;
-	left *= aspectRatio;
-	right *= aspectRatio;
-	glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
-
-#pragma region basicShape
+void SetUpBasicScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile file;
 	file.TextToStringStream("basic.vert.glsl");
 	std::string vertexSource = file.data;
 	file.TextToStringStream("basic.frag.glsl");
 	std::string fragmentSource = file.data;
 
-	std::shared_ptr<Shader> basicShader = std::make_shared<Shader>();
-	basicShader->AddUniform("projection");
-	basicShader->AddUniform("world");
-	basicShader->AddUniform("view");
-	unsigned int shaderProgram = basicShader->GetShaderProgram();
+	shader = std::make_shared<Shader>(vertexSource, fragmentSource);
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+	unsigned int shaderProgram = shader->GetShaderProgram();
 
-	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-
+	scene = std::make_shared<Scene>();
 	std::shared_ptr<GraphicsObject> square = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
 	buffer->AddVertexData(6, -5.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f);
@@ -177,18 +134,64 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	std::shared_ptr<GraphicsObject> line = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> buffer3 = std::make_shared<VertexBuffer>(6);
 	buffer3->SetPrimitiveType(GL_LINES);
-	buffer3->AddVertexData(6, 0.0f,  2.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	buffer3->AddVertexData(6, 0.0f, 2.5f, 0.0f, 0.0f, 1.0f, 0.0f);
 	buffer3->AddVertexData(6, 0.0f, -2.5f, 0.0f, 0.0f, 1.0f, 0.0f);
 	buffer3->AddVertexAttribute("position", 0, 3);
 	buffer3->AddVertexAttribute("color", 1, 3, 3);
 	line->SetVertexBuffer(buffer3);
 	line->SetPosition(glm::vec3(5.0f, -10.0f, 0.0f));
 	triangle->AddChild(line);
+}
 
-	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(basicShader);
-	renderer->SetScene(scene);
-	auto& objects = scene->GetObjects();
-	renderer->StaticAllocVertexBuffers(objects);
+//static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
+//{
+//	glm::vec3 right = glm::cross(direction, up);
+//	right = glm::normalize(right);
+//
+//	glm::vec3 vUp = glm::cross(right, direction);
+//	vUp = glm::normalize(vUp);
+//
+//	glm::mat4 view(1.0f);
+//	view[0] = glm::vec4(right, 0.0f);
+//	view[1] = glm::vec4(up, 0.0f);
+//	view[2] = glm::vec4(direction, 0.0f);
+//	view[3] = glm::vec4(position, 1.0f);
+//	return glm::inverse(view);
+//}
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow)
+{
+	std::shared_ptr<GraphicsEnvironment> environment = std::make_shared<GraphicsEnvironment>();
+	environment->Init(4,3);
+	if (!environment->SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
+	if (!environment->InitGlad()) { return -1; }
+	environment->SetUpGraphics();
+	GLFWwindow* window = environment->GetWindow();
+	
+	glViewport(0, 0, 1200, 800);	
+	//glfwMaximizeWindow(window);
+
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	float aspectRatio = width / (height * 1.0f);
+	float left = -50.0f;
+	float right = 50.0f;
+	float bottom = -50.0f;
+	float top = 50.0f;
+	left *= aspectRatio;
+	right *= aspectRatio;
+	glm::mat4 projection;
+
+#pragma region basicShape
+	std::shared_ptr<Shader> basicShader;
+	std::shared_ptr<Scene> basicScene;
+	SetUpBasicScene(basicShader, basicScene);
+	environment->CreateRenderer("renderer", basicShader);
+	environment->GetRenderer("renderer")->SetScene(basicScene);
+	auto& objects = basicScene->GetObjects();
 #pragma endregion
 
 #pragma region texturedShape
@@ -197,17 +200,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// Call the function to set up the textured scene by passing the declared shader and scene
 	SetUpTexturedScene(textureShader, textureScene);
 	// Create textureRenderer using the new shader
-	std::shared_ptr<Renderer> textureRenderer = std::make_shared<Renderer>(textureShader);
-	textureRenderer->SetScene(textureScene);
+	environment->CreateRenderer("textureRenderer", textureShader);
+	environment->GetRenderer("textureRenderer")->SetScene(textureScene);
 	auto& textureObjects = textureScene->GetObjects();
-	textureRenderer->StaticAllocVertexBuffers(textureObjects);
 #pragma endregion
 
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
-	
-	basicShader->SendMat4Uniform("projection", projection);
-	glUseProgram(textureShader->GetShaderProgram());
-	textureShader->SendMat4Uniform("projection", projection);
+
+	//basicShader->SendMat4Uniform("projection", projection);
+	//glUseProgram(textureShader->GetShaderProgram());
+	//textureShader->SendMat4Uniform("projection", projection);
 
 	float angle = 0, childAngle = 0;
 	float cameraX = -10, cameraY = 0;
@@ -217,15 +219,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	while (!glfwWindowShouldClose(window)) {
 		ProcessInput(window);
+		glfwGetWindowSize(window, &width, &height);
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);	
 
-		view = CreateViewMatrix(
-			glm::vec3(cameraX, cameraY, 1.0f),
-			glm::vec3(0.0f, 0.0f, -1.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f)
-		);
+		projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
 		// Update the objects in the scene
 		for (auto& object : objects) {
@@ -237,10 +236,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		renderer->SetView(view);
-		renderer->RenderScene();
-		textureRenderer->SetView(view);
-		textureRenderer->RenderScene();
+		view = environment->GetRenderer("renderer")->CreateViewMatrix(
+			glm::vec3(cameraX, cameraY, 1.0f),
+			glm::vec3(0.0f, 0.0f, -1.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
+
+		environment->StaticAllocate();
+		environment->GetRenderer("renderer")->SetProjection(projection);
+		environment->GetRenderer("textureRenderer")->SetProjection(projection);
+		environment->GetRenderer("renderer")->SetView(view);
+		environment->GetRenderer("textureRenderer")->SetView(view);
+		environment->Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();

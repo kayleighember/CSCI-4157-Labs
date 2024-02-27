@@ -4,15 +4,17 @@
 
 Renderer::Renderer(std::shared_ptr<Shader> shader) {
 	// set the shader
-	this->_shader = shader;
+	this->shader = shader;
 	// generate the vaoid
 	vaoId = 0;
 	glGenVertexArrays(1, &vaoId);
+	view = glm::mat4(1.0f);
+	projection = glm::mat4(1.0f);
 }
 
-void Renderer::StaticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
+void Renderer::StaticAllocVertexBuffers() {
 	glBindVertexArray(vaoId);
-	//auto& objects = scene->GetObjects();
+	auto& objects = scene->GetObjects();
 	for (auto& object : objects) {
 		object->StaticAllocateVertexBuffer();
 	}
@@ -21,13 +23,13 @@ void Renderer::StaticAllocVertexBuffers(const std::vector<std::shared_ptr<Graphi
 
 void Renderer::RenderObject(const GraphicsObject& object)
 {
-	_shader->SendMat4Uniform("world", object.GetReferenceFrame());
+	shader->SendMat4Uniform("world", object.GetReferenceFrame());
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
 	if (buffer->HasTexture()) {
 		//glUniform1i(texUnit, buffer->GetTextureUnit());
-		_shader->SendIntUniform("texUnit", buffer->GetTextureUnit());
+		shader->SendIntUniform("texUnit", buffer->GetTextureUnit());
 		// get texture from the buffer and select it for render
 		buffer->SelectTexture();
 	}
@@ -41,10 +43,27 @@ void Renderer::RenderObject(const GraphicsObject& object)
 	}
 }
 
+glm::mat4 Renderer::CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
+{
+	glm::vec3 right = glm::cross(direction, up);
+	right = glm::normalize(right);
+
+	glm::vec3 vUp = glm::cross(right, direction);
+	vUp = glm::normalize(vUp);
+
+	glm::mat4 view(1.0f);
+	view[0] = glm::vec4(right, 0.0f);
+	view[1] = glm::vec4(up, 0.0f);
+	view[2] = glm::vec4(direction, 0.0f);
+	view[3] = glm::vec4(position, 1.0f);
+	return glm::inverse(view);
+}
+
 void Renderer::RenderScene() {
-	glUseProgram(_shader->GetShaderProgram());
+	glUseProgram(shader->GetShaderProgram());
 	glBindVertexArray(vaoId);
-	_shader->SendMat4Uniform("view", view);
+	shader->SendMat4Uniform("view", view);
+	shader->SendMat4Uniform("proection", projection);
 	// Render the objects in the scene
 	//std::shared_ptr<Scene> scene = GetScene();
 	for (auto& object : scene->GetObjects()) {

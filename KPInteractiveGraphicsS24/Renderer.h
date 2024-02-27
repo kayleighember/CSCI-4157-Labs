@@ -8,18 +8,21 @@
 class Renderer : public BaseObject
 {
 private:
-	std::shared_ptr<Shader> _shader;
+	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
 	glm::mat4 view;
+	glm::mat4 projection;
 	unsigned int vaoId;
 public:
 	Renderer(std::shared_ptr<Shader> shader);
 	~Renderer() = default;
-	inline const std::shared_ptr<Shader> GetShader() const { return _shader; }
+	inline const std::shared_ptr<Shader> GetShader() const { return shader; }
 	inline const std::shared_ptr<Scene> GetScene() const { return scene; }
 	inline void SetScene(std::shared_ptr<Scene>& scene) { this->scene = scene; }
 	inline void SetView(glm::mat4& view) { this->view = view; }
-	void StaticAllocVertexBuffers(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
+	inline void SetProjection(glm::mat4& projection) { this->projection = projection; }
+	static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up);
+	void StaticAllocVertexBuffers();
 	void RenderScene();
 private:	
 	void RenderObject(const GraphicsObject& object);

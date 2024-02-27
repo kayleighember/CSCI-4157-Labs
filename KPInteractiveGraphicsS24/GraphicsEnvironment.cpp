@@ -48,3 +48,25 @@ void GraphicsEnvironment::SetUpGraphics() {
 void GraphicsEnvironment::OnWindowSizeChanged(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
+
+void GraphicsEnvironment::CreateRenderer(const std::string& name, std::shared_ptr<Shader> shader) {
+	// creates a Renderer using the shader and adds it to the map
+	std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(shader);
+	rendererMap[name] = renderer;
+}
+
+std::shared_ptr<Renderer> GraphicsEnvironment::GetRenderer(const std::string& name) {
+	return rendererMap[name];
+}
+
+void GraphicsEnvironment::StaticAllocate() {
+	for (const std::pair<const std::string, std::shared_ptr<Renderer>>& pair : rendererMap) {
+		pair.second->StaticAllocVertexBuffers();
+	}
+}
+
+void GraphicsEnvironment::Render() {
+	for (const std::pair<const std::string, std::shared_ptr<Renderer>>& pair : rendererMap) {
+		pair.second->RenderScene();
+	}
+}
