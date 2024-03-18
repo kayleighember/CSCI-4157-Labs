@@ -153,6 +153,8 @@
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="3D.frag.glsl" />
+    <None Include="3D.vert.glsl" />
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
     <None Include="texture.frag.glsl" />

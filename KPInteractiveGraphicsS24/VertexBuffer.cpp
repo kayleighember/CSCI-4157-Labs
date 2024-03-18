@@ -75,6 +75,6 @@ void VertexBuffer::SetUpAttributeInterpretration()
 void VertexBuffer::SelectTexture() {
 	if (HasTexture()) {
 		// select texture to render using the textureUnit
-		texture->SelectToRender();
+		texture->SelectToRender(textureUnit);
 	}
 }

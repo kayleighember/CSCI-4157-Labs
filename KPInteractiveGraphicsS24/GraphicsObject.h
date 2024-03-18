@@ -17,20 +17,21 @@ public:
 	virtual ~GraphicsObject();
 
 	const glm::mat4 GetReferenceFrame() const;
+	inline void SetReferenceFrame(glm::mat4 referenceFrame) { this->referenceFrame = referenceFrame; };
 	void CreateVertexBuffer(unsigned int numberOfElementsPerVertex);
 	void SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer);
 	inline const std::shared_ptr<VertexBuffer>& GetVertexBuffer() const {
 		return buffer;
 	}
 	void StaticAllocateVertexBuffer();
-
 	void AddChild(std::shared_ptr<GraphicsObject> child);
 	inline const std::vector<std::shared_ptr<GraphicsObject>>& GetChildren() const {
 		return children;
 	}
-
 	void SetPosition(const glm::vec3& position);
 	void ResetOrientation();
-	void RotateLocalZ(float degrees);
+	void RotateLocalX(float degrees);
+	void RotateLocalY(float degrees);
+	void RotateLocalZ(float degrees);	
 };
 
