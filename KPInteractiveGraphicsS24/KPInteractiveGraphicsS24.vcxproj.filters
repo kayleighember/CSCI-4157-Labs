@@ -72,6 +72,9 @@
     <ClCompile Include="GraphicsEnvironment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Generate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="basic.frag.glsl" />
@@ -110,6 +113,9 @@
       <Filter>Source Files\3rdparty</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsEnvironment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Generate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
