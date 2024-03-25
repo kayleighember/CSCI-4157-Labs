@@ -151,28 +151,53 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	shader->AddUniform("view");
 	unsigned int shaderProgram = shader->GetShaderProgram();
 
-	std::shared_ptr<Texture> texture = std::make_shared<Texture>();
-	texture->SetWidthHeight(4, 4);
+	std::shared_ptr<Texture> cubeTexture = std::make_shared<Texture>();
+	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
+	std::shared_ptr<Texture> floorTexture = std::make_shared<Texture>();
+	cubeTexture->SetWidthHeight(4, 4);
+
 	// Create the texture data
 	unsigned char* textureData = new unsigned char[] {
 		255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255, 255,
-		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-		255, 255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255
+			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+			255, 255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255
 	};
-	texture->SetTextureData(64, textureData);
+	cubeTexture->SetTextureData(64, textureData);
+	crateTexture->LoadTextureDataFromFile("Wood_Crate_001.jpg");
+	floorTexture->LoadTextureDataFromFile("floor_tiles.jpg");
 
 	scene = std::make_shared<Scene>();
+	// Cube
 	std::shared_ptr<GraphicsObject> cube = std::make_shared<GraphicsObject>();
-	std::shared_ptr<VertexBuffer> buffer = Generate::Cuboid(10.0f, 5.0f, 5.0f);
-	
-	texture->SetWrapS(GL_CLAMP_TO_EDGE);
-	texture->SetWrapT(GL_CLAMP_TO_EDGE);
-	texture->SetMagFilter(GL_NEAREST);
-	buffer->SetTexture(texture);
-	cube->SetVertexBuffer(buffer);
+	std::shared_ptr<VertexBuffer> cubeBuffer = Generate::Cuboid(10.0f, 5.0f, 5.0f);	
+	cubeTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+	cubeTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+	cubeTexture->SetMagFilter(GL_NEAREST);
+	cubeBuffer->SetTexture(cubeTexture);
+	cube->SetVertexBuffer(cubeBuffer);
 	cube->SetPosition(glm::vec3(0, 0, 0));
 	scene->AddObject(cube);
+	// Crate
+	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> crateBuffer = Generate::Cuboid(5.0f, 5.0f, 5.0f);
+	crateTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+	crateTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+	crateTexture->SetMagFilter(GL_LINEAR);
+	crateBuffer->SetTexture(crateTexture);
+	crate->SetVertexBuffer(crateBuffer);
+	crate->SetPosition(glm::vec3(-20, 0, 0));
+	scene->AddObject(crate);
+	// Floor
+	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> floorBuffer = Generate::XZPlane(30.0f, 20.0f);
+	floorTexture->SetWrapS(GL_REPEAT);
+	floorTexture->SetWrapT(GL_REPEAT);
+	floorTexture->SetMagFilter(GL_LINEAR);
+	floorBuffer->SetTexture(floorTexture);
+	floor->SetVertexBuffer(floorBuffer);
+	floor->SetPosition(glm::vec3(0, -5, 0));
+	scene->AddObject(floor);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

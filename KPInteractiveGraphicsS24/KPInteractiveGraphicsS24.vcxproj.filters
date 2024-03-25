@@ -123,5 +123,11 @@
     <Image Include="pattern_0011.png">
       <Filter>Source Files</Filter>
     </Image>
+    <Image Include="Wood_Crate_001.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="floor_tiles.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

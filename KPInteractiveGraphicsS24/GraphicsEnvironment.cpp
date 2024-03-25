@@ -13,6 +13,7 @@ void GraphicsEnvironment::Init(unsigned int majorVersion, unsigned int minorVers
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 }
 
 bool GraphicsEnvironment::SetWindow(unsigned int width, unsigned int height, const std::string& title) {
@@ -48,6 +49,9 @@ void GraphicsEnvironment::SetUpGraphics() {
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LEQUAL);
 	glDepthRange(0.0f, 1.0f);
+
+	// Anti-aliasing
+	glEnable(GL_MULTISAMPLE);
 
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
 	IMGUI_CHECKVERSION();
@@ -198,15 +202,15 @@ void GraphicsEnvironment::Run3D() {
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
 	float cubeZAngle = 0;
-	float left = -20.0f;
-	float right = 20.0f;
-	float bottom = -20.0f;
-	float top = 20.0f;
+	float left = -60.0f;
+	float right = 60.0f;
+	float bottom = -60.0f;
+	float top = 60.0f;
 	int width, height;
 	float aspectRatio;
-	float nearPlane = 1.0f;
-	float farPlane = 50.0f;
-	float fieldOfView = 60;
+	float nearPlane = 1.0f;	// don't use 0 for near plane
+	float farPlane = 60.0f;
+	float fieldOfView = 60;	// vertical fov in radians
 	glm::vec3 cameraPosition(15.0f, 15.0f, 20.0f);
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 	glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
@@ -226,13 +230,11 @@ void GraphicsEnvironment::Run3D() {
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		for (auto& object : objects) {
-			object->ResetOrientation();
-			object->RotateLocalX(cubeXAngle);
-			object->RotateLocalY(cubeYAngle);
-			object->RotateLocalZ(cubeZAngle);
-		}
+		
+		objects[0]->ResetOrientation();
+		objects[0]->RotateLocalX(cubeXAngle);
+		objects[0]->RotateLocalY(cubeYAngle);
+		objects[0]->RotateLocalZ(cubeZAngle);
 
 		view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
@@ -263,7 +265,7 @@ void GraphicsEnvironment::Run3D() {
 		ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
 		ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
 		ImGui::SliderFloat("Camera Y", &cameraPosition.y, bottom, top);
-		ImGui::SliderFloat("Camera Z", &cameraPosition.z, 20, 50);
+		ImGui::SliderFloat("Camera Z", &cameraPosition.z, -20, 50);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

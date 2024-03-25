@@ -175,7 +175,9 @@
     <ClInclude Include="VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="floor_tiles.jpg" />
     <Image Include="pattern_0011.png" />
+    <Image Include="Wood_Crate_001.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
