@@ -102,9 +102,91 @@ glm::mat4 GraphicsEnvironment::CreateViewMatrix(const glm::vec3& position, const
 	return glm::inverse(view);
 }
 
+glm::mat4 GraphicsEnvironment::CreateViewMatrix(glm::mat4& cameraFrame) {
+	glm::mat4 view(1.0f);
+	glm::vec3 cameraForward;
+	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+	glm::vec3 cameraPosition = cameraFrame[3];
+	cameraForward = cameraFrame[2];
+	cameraForward = -cameraForward;
+	cameraTarget = cameraPosition + cameraForward;
+	cameraUp = cameraFrame[1];
+	view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+
+	return view;
+}
+
+void GraphicsEnvironment::AddObject(const std::string& name, std::shared_ptr<GraphicsObject> object) {
+	objManager.SetObject(name, object);
+}
+
 void GraphicsEnvironment::ProcessInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+	}
+}
+
+void GraphicsEnvironment::ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+		axis = glm::vec3(0.0f, 1.0f, 0.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		axis = glm::vec3(1.0f, 0.0f, 0.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+		axis = glm::vec3(0.0f, 0.0f, 1.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		glm::vec3 forward = -cameraFrame[2];
+		glm::vec3 position = cameraFrame[3];
+		forward = forward * static_cast<float>(10.0f * elapsedSeconds);
+		position = position + forward;
+		cameraFrame[3] = glm::vec4(position, 1.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		glm::vec3 toLeft = -cameraFrame[0];
+		glm::vec3 position = cameraFrame[3];
+		toLeft = toLeft * static_cast<float>(10.0f * elapsedSeconds);
+		position = position + toLeft;
+		cameraFrame[3] = glm::vec4(position, 1.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		glm::vec3 backward = cameraFrame[2];
+		glm::vec3 position = cameraFrame[3];
+		backward = backward * static_cast<float>(10.0f * elapsedSeconds);
+		position = position + backward;
+		cameraFrame[3] = glm::vec4(position, 1.0f);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		glm::vec3 toRight = cameraFrame[0];
+		glm::vec3 position = cameraFrame[3];
+		toRight = toRight * static_cast<float>(10.0f * elapsedSeconds);
+		position = position + toRight;
+		cameraFrame[3] = glm::vec4(position, 1.0f);
+		return;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		glm::vec3 yAxis = cameraFrame[1];
+		float turnDelta = static_cast<float>(-90.0f * elapsedSeconds);
+		cameraFrame = glm::rotate(cameraFrame, glm::radians(turnDelta), yAxis);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		glm::vec3 yAxis = cameraFrame[1];
+		float turnDelta = static_cast<float>(90.0f * elapsedSeconds);
+		cameraFrame = glm::rotate(cameraFrame, glm::radians(turnDelta), yAxis);
+		return;
 	}
 }
 
@@ -202,22 +284,35 @@ void GraphicsEnvironment::Run3D() {
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
 	float cubeZAngle = 0;
-	float left = -60.0f;
-	float right = 60.0f;
-	float bottom = -60.0f;
-	float top = 60.0f;
+	float left = -20.0f;
+	float right = 20.0f;
+	float bottom = -20.0f;
+	float top = 20.0f;
 	int width, height;
+
 	float aspectRatio;
 	float nearPlane = 1.0f;	// don't use 0 for near plane
-	float farPlane = 60.0f;
+	float farPlane = 100.0f;
 	float fieldOfView = 60;	// vertical fov in radians
+
 	glm::vec3 cameraPosition(15.0f, 15.0f, 20.0f);
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 	glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
-	glm::mat4 projection;
+	
 	glm::mat4 view;
+	glm::mat4 projection;
 	glm::mat4 referenceFrame(1.0f);
-	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };	
+	
+	glm::mat4 cameraFrame(1.0f);
+	cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
+	glm::vec3 cameraForward;
+	glm::vec3 axis(0.0f, 1.0f, 0.0f);
+
+	float speed = 90.0f;
+	double elapsedSeconds;
+	float deltaAngle;
+	Timer timer;
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -225,18 +320,23 @@ void GraphicsEnvironment::Run3D() {
 	std::vector<std::shared_ptr<GraphicsObject>> objects = renderer->GetScene()->GetObjects();
 
 	while (!glfwWindowShouldClose(window)) {
-		ProcessInput(window);
+		elapsedSeconds = timer.GetElapsedTimeInSeconds();
+		ProcessInput(window, elapsedSeconds, axis, cameraFrame);
 		glfwGetWindowSize(window, &width, &height);
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		deltaAngle = static_cast<float>(speed * elapsedSeconds);
+		referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
+
+		view = CreateViewMatrix(cameraFrame);
 		
-		objects[0]->ResetOrientation();
+		// sliders for cube only (object 0)
+		/*objects[0]->ResetOrientation();
 		objects[0]->RotateLocalX(cubeXAngle);
 		objects[0]->RotateLocalY(cubeYAngle);
-		objects[0]->RotateLocalZ(cubeZAngle);
-
-		view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+		objects[0]->RotateLocalZ(cubeZAngle);*/
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -248,8 +348,8 @@ void GraphicsEnvironment::Run3D() {
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		
 		renderer->SetProjection(projection);
-		// why do you have 2 renderers here u dumdum
 		renderer->SetView(view);
+		objManager.Update(elapsedSeconds);
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -259,13 +359,15 @@ void GraphicsEnvironment::Run3D() {
 		//ImGui::Text(message.c_str());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
+		ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
-		ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
-		ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
-		ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
-		ImGui::SliderFloat("Camera Y", &cameraPosition.y, bottom, top);
-		ImGui::SliderFloat("Camera Z", &cameraPosition.z, -20, 50);
+		//ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
+		//ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
+		//ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
+		ImGui::SliderFloat("Speed", &speed, 0, 360);
+		ImGui::SliderFloat("Camera X", &cameraFrame[3].x, left, right);
+		ImGui::SliderFloat("Camera Y", &cameraFrame[3].y, bottom, top);
+		ImGui::SliderFloat("Camera Z", &cameraFrame[3].z, 20, 50);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

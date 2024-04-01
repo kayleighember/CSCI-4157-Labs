@@ -32,6 +32,7 @@ public:
 	void ResetOrientation();
 	void RotateLocalX(float degrees);
 	void RotateLocalY(float degrees);
-	void RotateLocalZ(float degrees);	
+	void RotateLocalZ(float degrees);
+	void Update(double elapsedSeconds);
 };
 

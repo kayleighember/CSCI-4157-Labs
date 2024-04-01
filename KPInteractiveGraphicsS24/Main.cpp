@@ -138,7 +138,7 @@ static void SetUpTexturedScene(
 	textureScene->AddObject(graphicsObj2);
 }
 
-static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene, GraphicsEnvironment& environment) {
 	TextFile file;
 	file.TextToStringStream("3D.vert.glsl");
 	std::string vertexSource = file.data;
@@ -205,21 +205,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow)
 {
-	std::shared_ptr<GraphicsEnvironment> environment = std::make_shared<GraphicsEnvironment>();
-	environment->Init(4,3);
-	if (!environment->SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
-	if (!environment->InitGlad()) { return -1; }
-	environment->SetUpGraphics();
+	GraphicsEnvironment environment;
+	environment.Init(4,3);
+	if (!environment.SetWindow(1200, 800, "ETSU Computing Interactive Graphics")) { return -1;	}
+	if (!environment.InitGlad()) { return -1; }
+	environment.SetUpGraphics();
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene1(shader, scene);
+	SetUp3DScene1(shader, scene, environment);
 
-	environment->CreateRenderer("renderer", shader);
-	environment->GetRenderer("renderer")->SetScene(scene);
-	environment->StaticAllocate();
+	environment.CreateRenderer("renderer", shader);
+	environment.GetRenderer("renderer")->SetScene(scene);
+	environment.StaticAllocate();
 
-	environment->Run3D();
+	environment.Run3D();
 	return 0;
 }
 

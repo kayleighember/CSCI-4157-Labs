@@ -75,6 +75,12 @@
     <ClCompile Include="Generate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="basic.frag.glsl" />
@@ -116,6 +122,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Generate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
