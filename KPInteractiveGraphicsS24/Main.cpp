@@ -178,6 +178,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	cube->SetVertexBuffer(cubeBuffer);
 	cube->SetPosition(glm::vec3(0, 0, 0));
 	scene->AddObject(cube);
+	environment.AddObject("cube", cube);
 	// Crate
 	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> crateBuffer = Generate::Cuboid(5.0f, 5.0f, 5.0f);
@@ -188,6 +189,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	crate->SetVertexBuffer(crateBuffer);
 	crate->SetPosition(glm::vec3(-20, 0, 0));
 	scene->AddObject(crate);
+	environment.AddObject("crate", crate);
 	// Floor
 	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
 	std::shared_ptr<VertexBuffer> floorBuffer = Generate::XZPlane(30.0f, 20.0f);
@@ -198,6 +200,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	floor->SetVertexBuffer(floorBuffer);
 	floor->SetPosition(glm::vec3(0, -5, 0));
 	scene->AddObject(floor);
+	environment.AddObject("floor", floor);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

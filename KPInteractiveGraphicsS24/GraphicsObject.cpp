@@ -83,5 +83,7 @@ void GraphicsObject::RotateLocalZ(float degrees)
 }
 
 void GraphicsObject::Update(double elapsedSeconds) {
-
+	if (animation != nullptr) {
+		animation->Update(elapsedSeconds);
+	}
 }

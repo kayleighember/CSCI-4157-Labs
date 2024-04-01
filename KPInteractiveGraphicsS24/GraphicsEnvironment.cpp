@@ -2,6 +2,7 @@
 
 GraphicsEnvironment::GraphicsEnvironment() {
 	window = nullptr;
+	objManager = std::make_shared<ObjectManager>();
 }
 
 GraphicsEnvironment::~GraphicsEnvironment() {
@@ -118,7 +119,7 @@ glm::mat4 GraphicsEnvironment::CreateViewMatrix(glm::mat4& cameraFrame) {
 }
 
 void GraphicsEnvironment::AddObject(const std::string& name, std::shared_ptr<GraphicsObject> object) {
-	objManager.SetObject(name, object);
+	objManager->SetObject(name, object);
 }
 
 void GraphicsEnvironment::ProcessInput(GLFWwindow* window) {
@@ -319,6 +320,11 @@ void GraphicsEnvironment::Run3D() {
 	std::shared_ptr<Renderer> renderer = GetRenderer("renderer");
 	std::vector<std::shared_ptr<GraphicsObject>> objects = renderer->GetScene()->GetObjects();
 
+	std::shared_ptr<RotateAnimation> rotateAnimation = std::make_shared<RotateAnimation>();
+	rotateAnimation->SetObject(objManager->GetObject("crate"));
+	objManager->GetObject("crate")->SetAnimation(rotateAnimation);
+
+
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(window, elapsedSeconds, axis, cameraFrame);
@@ -349,7 +355,7 @@ void GraphicsEnvironment::Run3D() {
 		
 		renderer->SetProjection(projection);
 		renderer->SetView(view);
-		objManager.Update(elapsedSeconds);
+		objManager->Update(elapsedSeconds);
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();

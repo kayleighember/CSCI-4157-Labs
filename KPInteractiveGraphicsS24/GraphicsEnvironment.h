@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "ObjectManager.h"
 #include "Timer.h"
+#include "RotateAnimation.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -16,7 +17,8 @@ class GraphicsEnvironment : public BaseObject
 private:
 	GLFWwindow* window;
 	std::unordered_map<std::string, std::shared_ptr<Renderer>> rendererMap;
-	ObjectManager objManager;
+	// create this, don't just define!
+	std::shared_ptr<ObjectManager> objManager;
 public:
 	GraphicsEnvironment();
 	~GraphicsEnvironment();
