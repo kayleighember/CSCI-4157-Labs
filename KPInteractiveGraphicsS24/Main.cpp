@@ -192,13 +192,13 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	environment.AddObject("crate", crate);
 	// Floor
 	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
-	std::shared_ptr<VertexBuffer> floorBuffer = Generate::XZPlane(30.0f, 20.0f);
+	std::shared_ptr<VertexBuffer> floorBuffer = Generate::XZPlane(50.0f, 30.0f);
 	floorTexture->SetWrapS(GL_REPEAT);
 	floorTexture->SetWrapT(GL_REPEAT);
 	floorTexture->SetMagFilter(GL_LINEAR);
 	floorBuffer->SetTexture(floorTexture);
 	floor->SetVertexBuffer(floorBuffer);
-	floor->SetPosition(glm::vec3(0, -5, 0));
+	floor->SetPosition(glm::vec3(0, 0, 0));
 	scene->AddObject(floor);
 	environment.AddObject("floor", floor);
 }

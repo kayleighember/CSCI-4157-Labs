@@ -19,7 +19,7 @@ public:
 	inline const std::shared_ptr<Shader> GetShader() const { return shader; }
 	inline const std::shared_ptr<Scene> GetScene() const { return scene; }
 	inline void SetScene(std::shared_ptr<Scene>& scene) { this->scene = scene; }
-	inline void SetView(glm::mat4& view) { this->view = view; }
+	inline void SetView(glm::mat4 view) { this->view = view; }
 	inline void SetProjection(glm::mat4& projection) { this->projection = projection; }
 	void StaticAllocVertexBuffers();
 	void RenderScene();
