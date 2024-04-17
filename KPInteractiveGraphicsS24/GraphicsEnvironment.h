@@ -5,6 +5,7 @@
 #include "Timer.h"
 #include "Camera.h"
 #include "RotateAnimation.h"
+#include "GraphicsStructures.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -20,6 +21,8 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Renderer>> rendererMap;
 	std::shared_ptr<ObjectManager> objManager;
 	std::shared_ptr<Camera> camera;
+	static GraphicsEnvironment* self;
+	MouseParams mouse;
 public:
 	GraphicsEnvironment();
 	~GraphicsEnvironment();
@@ -39,5 +42,6 @@ public:
 	void Run2D();
 	void Run3D();
 	void AddObject(const std::string& name, std::shared_ptr<GraphicsObject> object);
+	static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY);
 };
 

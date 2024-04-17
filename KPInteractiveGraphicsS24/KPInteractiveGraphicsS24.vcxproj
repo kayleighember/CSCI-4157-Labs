@@ -173,9 +173,11 @@
     <ClInclude Include="Generate.h" />
     <ClInclude Include="GraphicsEnvironment.h" />
     <ClInclude Include="GraphicsObject.h" />
+    <ClInclude Include="GraphicsStructures.h" />
     <ClInclude Include="IAnimation.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RotateAnimation.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
@@ -188,6 +190,9 @@
     <Image Include="floor_tiles.jpg" />
     <Image Include="pattern_0011.png" />
     <Image Include="Wood_Crate_001.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KPInteractiveGraphicsS24.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

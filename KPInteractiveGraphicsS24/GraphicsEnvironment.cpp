@@ -1,8 +1,12 @@
 #include "GraphicsEnvironment.h"
 
+GraphicsEnvironment* GraphicsEnvironment::self;
+
 GraphicsEnvironment::GraphicsEnvironment() {
 	window = nullptr;
 	objManager = std::make_shared<ObjectManager>();
+	camera = std::make_shared<Camera>();
+	self = this;
 }
 
 GraphicsEnvironment::~GraphicsEnvironment() {
@@ -55,6 +59,7 @@ void GraphicsEnvironment::SetUpGraphics() {
 	glEnable(GL_MULTISAMPLE);
 
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
+	glfwSetCursorPosCallback(window, OnMouseMove);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -173,6 +178,17 @@ void GraphicsEnvironment::ProcessInput(double elapsedSeconds) {
 	
 }
 
+void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double mouseY) {
+	self->mouse.x = mouseX;
+	self->mouse.y = mouseY;
+
+	float xPercent = static_cast<float>(self->mouse.x / self->mouse.windowWidth);
+	float yPercent = static_cast<float>(self->mouse.y / self->mouse.windowHeight);
+
+	self->mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
+	self->mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
+}
+
 void GraphicsEnvironment::Run2D() {
 	window = GetWindow();
 	glViewport(0, 0, 1200, 800);
@@ -264,6 +280,8 @@ void GraphicsEnvironment::Run3D() {
 	glViewport(0, 0, 1200, 800);
 	//glfwMaximizeWindow(window);
 
+	bool resetCameraPosition = false;
+	bool lookWithMouse = false;
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
 	float cubeZAngle = 0;
@@ -313,14 +331,25 @@ void GraphicsEnvironment::Run3D() {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
 		glfwGetWindowSize(window, &width, &height);
+		mouse.windowWidth = width;
+		mouse.windowHeight = height;
+		
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		//deltaAngle = static_cast<float>(speed * elapsedSeconds);
 		//referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
-
-		view = camera->LookForward();
+		
+		if (lookWithMouse) {
+			camera->SetLookFrame(mouse.spherical.ToMat4());
+		}	
+		if (resetCameraPosition) {
+			lookWithMouse = false;
+			camera->SetLookFrame(glm::mat4(1.0f));
+			resetCameraPosition = false;
+		}
+		view = camera->LookForward();		
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -329,10 +358,8 @@ void GraphicsEnvironment::Run3D() {
 			aspectRatio = height / (width * 1.0f);
 		}
 		projection = glm::perspective(
-			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
-		
-		renderer->SetProjection(projection);
-		
+			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);		
+		renderer->SetProjection(projection);		
 		renderer->SetView(view);
 		objManager->Update(elapsedSeconds);
 		Render();
@@ -346,6 +373,9 @@ void GraphicsEnvironment::Run3D() {
 			1000.0f / io.Framerate, io.Framerate);
 		ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
+		ImGui::SliderFloat("Speed", &speed, 0, 360);
+		ImGui::Checkbox("Use mouse to look", &lookWithMouse);
+		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
 		//ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
 		//ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
 		//ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
